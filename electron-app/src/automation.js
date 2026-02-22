@@ -28,6 +28,11 @@ function loadAllProjects() {
     return {};
 }
 
+const COOLDOWN_DEFAULT_MS   = 3600000; // 1 hour
+const COOLDOWN_ERROR_MS     = 900000;  // 15 minutes
+const POLL_INTERVAL_MS      = 60000;   // 1 minute
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
 class VoteAutomation extends EventEmitter {
     constructor(store) {
         super();
@@ -102,7 +107,7 @@ class VoteAutomation extends EventEmitter {
                 if (wait > 0) {
                     this.log(`No projects ready. Next vote in ${Math.ceil(wait / 60000)} min`, 'info');
                     this.emit('status', 'waiting');
-                    await this._sleep(Math.min(wait, 60000));
+                await this._sleep(Math.min(wait, POLL_INTERVAL_MS));
                 } else {
                     await this._sleep(5000);
                 }
@@ -142,7 +147,7 @@ class VoteAutomation extends EventEmitter {
 
         if (!projectDef || !projectDef.voteURL) {
             this.log(`No definition found for rating: ${project.rating}`, 'error');
-            this._updateProjectNextTime(project.key, Date.now() + 3600000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_DEFAULT_MS);
             return;
         }
 
@@ -151,7 +156,7 @@ class VoteAutomation extends EventEmitter {
             voteURL = projectDef.voteURL(project);
         } catch (e) {
             this.log(`Failed to get vote URL for ${project.rating}/${project.id}: ${e.message}`, 'error');
-            this._updateProjectNextTime(project.key, Date.now() + 3600000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_DEFAULT_MS);
             return;
         }
 
@@ -177,14 +182,14 @@ class VoteAutomation extends EventEmitter {
 
         if (!scriptPath) {
             this.log(`Voting script not found for: ${project.rating}`, 'warn');
-            this._updateProjectNextTime(project.key, Date.now() + 3600000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_DEFAULT_MS);
             return;
         }
 
         let context;
         try {
             context = await this.browser.newContext({
-                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                userAgent: USER_AGENT
             });
             const page = await context.newPage();
 
@@ -221,7 +226,7 @@ class VoteAutomation extends EventEmitter {
                 await page.goto(voteURL, { timeout, waitUntil: 'domcontentloaded' });
             } catch (navErr) {
                 this.log(`Navigation error for ${project.rating}: ${navErr.message}`, 'error');
-                this._updateProjectNextTime(project.key, Date.now() + 900000);
+                this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
                 await context.close();
                 return;
             }
@@ -252,7 +257,7 @@ class VoteAutomation extends EventEmitter {
                 await page.addScriptTag({ path: scriptPath });
             } catch (e) {
                 this.log(`Failed to inject voting script: ${e.message}`, 'error');
-                this._updateProjectNextTime(project.key, Date.now() + 900000);
+                this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
                 await context.close();
                 return;
             }
@@ -289,13 +294,13 @@ class VoteAutomation extends EventEmitter {
                 this._handleVoteResult(result, project);
             } else {
                 this.log(`Vote timeout for ${project.rating}/${project.id}`, 'warn');
-                this._updateProjectNextTime(project.key, Date.now() + 900000);
+                this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
                 this.emit('vote-result', { project, result: 'timeout' });
             }
 
         } catch (err) {
             this.log(`Error voting for ${project.rating}/${project.id}: ${err.message}`, 'error');
-            this._updateProjectNextTime(project.key, Date.now() + 900000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
         } finally {
             if (context) {
                 try { await context.close(); } catch (e) {}
@@ -327,30 +332,30 @@ class VoteAutomation extends EventEmitter {
         if (result.successfully) {
             this.log(`✓ Voted successfully for ${project.rating}/${project.id}`, 'success');
             this.emit('vote-result', { project, result: 'success' });
-            this._updateProjectNextTime(project.key, Date.now() + 3600000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_DEFAULT_MS);
         } else if (result.later) {
             this.log(`⏱ Already voted for ${project.rating}/${project.id} - try later`, 'info');
             this.emit('vote-result', { project, result: 'later' });
-            this._updateProjectNextTime(project.key, Date.now() + 3600000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_DEFAULT_MS);
         } else if (result.captcha) {
             this.log(`CAPTCHA challenge for ${project.rating}/${project.id}`, 'warn');
             this.emit('captcha', {
                 projectName: `${project.rating}/${project.id}`,
                 url: ''
             });
-            this._updateProjectNextTime(project.key, Date.now() + 900000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
         } else if (result.message) {
             this.log(`ℹ ${project.rating}/${project.id}: ${result.message}`, 'warn');
             this.emit('vote-result', { project, result: 'message', message: result.message });
-            this._updateProjectNextTime(project.key, Date.now() + 900000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
         } else if (result.errorVote || result.errorVoteNoElement) {
             const msg = result.errorVote ? result.errorVote[0] : (result.errorVoteNoElement || 'unknown error');
             this.log(`✗ Vote error for ${project.rating}/${project.id}: ${msg}`, 'error');
             this.emit('vote-result', { project, result: 'error', message: msg });
-            this._updateProjectNextTime(project.key, Date.now() + 900000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
         } else {
             this.log(`? Unknown result for ${project.rating}/${project.id}: ${JSON.stringify(result)}`, 'warn');
-            this._updateProjectNextTime(project.key, Date.now() + 900000);
+            this._updateProjectNextTime(project.key, Date.now() + COOLDOWN_ERROR_MS);
         }
     }
 

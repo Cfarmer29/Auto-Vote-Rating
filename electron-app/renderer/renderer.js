@@ -217,7 +217,7 @@ window.avr.onVoteResult(data => {
             proj.nextVoteTime = data.project.nextVoteTime;
         }
         // Refresh next-vote display for that row
-        const row = projectsTbody.querySelector(`tr[data-key="${escHtml(data.project.key)}"]`);
+        const row = projectsTbody.querySelector(`tr[data-key="${data.project.key}"]`);
         if (row) {
             const p = projects.find(x => x.key === data.project.key);
             if (p) {
