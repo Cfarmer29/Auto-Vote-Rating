@@ -1,0 +1,53 @@
+{
+  "name": "auto-vote-rating-desktop",
+  "version": "1.0.0",
+  "description": "Auto Vote Rating Windows Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "build:win": "electron-builder --win --config.compression=normal"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "playwright": "^1.55.1"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.autovoterating.desktop",
+    "productName": "Auto Vote Rating",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "../images/icon128.png"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!node_modules/.cache/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../scripts",
+        "to": "scripts",
+        "filter": ["**/*.js"]
+      },
+      {
+        "from": "../libs",
+        "to": "libs",
+        "filter": ["**/*.js"]
+      },
+      {
+        "from": "../projects.js",
+        "to": "projects.js"
+      }
+    ]
+  }
+}
