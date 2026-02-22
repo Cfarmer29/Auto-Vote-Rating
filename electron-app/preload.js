@@ -14,8 +14,20 @@ contextBridge.exposeInMainWorld('avr', {
     captchaResolved: () => ipcRenderer.invoke('captcha-resolved'),
     getLogs: () => ipcRenderer.invoke('get-logs'),
     clearLogs: () => ipcRenderer.invoke('clear-logs'),
-    onLog: (callback) => ipcRenderer.on('automation-log', (_event, data) => callback(data)),
-    onStatus: (callback) => ipcRenderer.on('automation-status', (_event, data) => callback(data)),
-    onCaptcha: (callback) => ipcRenderer.on('automation-captcha', (_event, data) => callback(data)),
-    onVoteResult: (callback) => ipcRenderer.on('automation-vote-result', (_event, data) => callback(data))
+    onLog: (callback) => {
+        ipcRenderer.removeAllListeners('automation-log');
+        ipcRenderer.on('automation-log', (_event, data) => callback(data));
+    },
+    onStatus: (callback) => {
+        ipcRenderer.removeAllListeners('automation-status');
+        ipcRenderer.on('automation-status', (_event, data) => callback(data));
+    },
+    onCaptcha: (callback) => {
+        ipcRenderer.removeAllListeners('automation-captcha');
+        ipcRenderer.on('automation-captcha', (_event, data) => callback(data));
+    },
+    onVoteResult: (callback) => {
+        ipcRenderer.removeAllListeners('automation-vote-result');
+        ipcRenderer.on('automation-vote-result', (_event, data) => callback(data));
+    }
 });
