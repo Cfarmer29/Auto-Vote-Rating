@@ -166,6 +166,57 @@ Here is a short guide how to install an unpacked extension on Google Chrome or C
 4. Click on the "Load unpacked" button and select the directory where you unpacked the archive.
 
 
+## Windows Desktop App (Electron)
+
+A standalone Windows desktop application is available in the `electron-app/` directory. It provides a GUI for configuring and running the auto-voting workflow without installing the browser extension.
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) v18 or newer
+- Windows 10 x64 or newer (for packaged builds)
+
+### Setup
+
+```bash
+cd electron-app
+npm install
+npx playwright install chromium
+```
+
+### Run in development mode
+
+```bash
+npm run dev
+```
+
+This opens the GUI window directly.
+
+### Build a Windows installer / portable executable
+
+```bash
+npm run build:win
+```
+
+Output is placed in `electron-app/dist/`. Two artifacts are produced:
+- `Auto Vote Rating Setup <version>.exe` — NSIS installer
+- `Auto Vote Rating <version>.exe` — portable executable (no install needed)
+
+### Using the app
+
+1. **Add projects** — in the *Projects* tab, select the voting site, enter the server/project ID and your in-game nickname, then click *Add*.
+2. **Configure settings** — in the *Settings* tab, adjust page-load timeout, vote-action timeout and toggle headless mode (default: off, so you can watch the browser).
+3. **Start automation** — click *Start* in the header. The app opens a Chromium window for each vote in sequence.
+4. **CAPTCHA handling** — if a CAPTCHA requiring human input is detected, the app pauses and shows an overlay instructing you to solve it manually in the browser window, then click *Resume*.
+5. **Logs** — live log output is shown in the bottom panel; persisted across restarts (last 500 entries).
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `Error: Failed to launch browser` | Run `npx playwright install chromium` to download the Chromium binary |
+| `Voting script not found for: <site>` | The site may not have a dedicated script in `scripts/`. Check the list of supported sites above |
+| Window stays white | Ensure you ran `npm install` inside `electron-app/` |
+| Build fails on `icon` | The icon path `../images/icon128.png` must exist; it is part of this repository |
+
 ## Libraries used
 ### [IDB](https://github.com/jakearchibald/idb)
 ### [LinkeDOM](https://github.com/WebReflection/linkedom) (also [Polyfill](https://github.com/regseb/castkodi/tree/main/src/polyfill))
