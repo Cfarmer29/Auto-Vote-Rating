@@ -292,28 +292,29 @@
       <div class="form-row">
         <div class="form-group">
           <label>Rating Site</label>
-          <select id="add-rating">
-            <option value="topcraft.ru">topcraft.ru</option>
-            <option value="mctop.su">mctop.su</option>
-            <option value="mcrate.su">mcrate.su</option>
-            <option value="minecraftrating.ru">minecraftrating.ru</option>
-            <option value="minecraftservers.org">minecraftservers.org</option>
-            <option value="topg.org">topg.org</option>
-            <option value="top.gg">top.gg</option>
-            <option value="discordbotlist.com">discordbotlist.com</option>
-            <option value="mc-servers.com">mc-servers.com</option>
-            <option value="minecraftlist.org">minecraftlist.org</option>
-            <option value="trackyserver.com">trackyserver.com</option>
-            <option value="minecraft-server.net">minecraft-server.net</option>
-            <option value="minecraft-server-list.com">minecraft-server-list.com</option>
-            <option value="gtop100.com">gtop100.com</option>
-            <option value="best-minecraft-servers.co">best-minecraft-servers.co</option>
-            <option value="bestservers.com">bestservers.com</option>
-            <option value="craftlist.org">craftlist.org</option>
-            <option value="discords.com">discords.com</option>
-            <option value="infinitybots.gg">infinitybots.gg</option>
-            <option value="botlist.me">botlist.me</option>
-          </select>
+          <input type="text" id="add-rating" list="rating-list" placeholder="e.g. topcraft.ru" spellcheck="false" />
+          <datalist id="rating-list">
+            <option value="topcraft.ru">
+            <option value="mctop.su">
+            <option value="mcrate.su">
+            <option value="minecraftrating.ru">
+            <option value="minecraftservers.org">
+            <option value="topg.org">
+            <option value="top.gg">
+            <option value="discordbotlist.com">
+            <option value="mc-servers.com">
+            <option value="minecraftlist.org">
+            <option value="trackyserver.com">
+            <option value="minecraft-server.net">
+            <option value="minecraft-server-list.com">
+            <option value="gtop100.com">
+            <option value="best-minecraft-servers.co">
+            <option value="bestservers.com">
+            <option value="craftlist.org">
+            <option value="discords.com">
+            <option value="infinitybots.gg">
+            <option value="botlist.me">
+          </datalist>
         </div>
         <div class="form-group">
           <label>Server ID</label>
